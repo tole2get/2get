@@ -1,10 +1,10 @@
 'use client'
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, Suspense } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 
-export default function Messages() {
+function MessagesContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [user, setUser] = useState<any>(null)
@@ -30,13 +30,12 @@ export default function Messages() {
         .single()
       setProfile(profile)
 
-      await fetchConversations(user.id, profile)
+      const convos = await fetchConversations(user.id, profile)
 
-      // If coming from listing page, start or find conversation
       const providerId = searchParams.get('provider')
       const listingId = searchParams.get('listing')
       if (providerId && providerId !== user.id) {
-        await startOrFindConversation(user.id, providerId, listingId)
+        await startOrFindConversation(user.id, providerId, listingId, convos)
       }
 
       setLoading(false)
@@ -52,7 +51,6 @@ export default function Messages() {
       .order('last_message_at', { ascending: false })
 
     if (data) {
-      // Get other party profiles
       const convosWithProfiles = await Promise.all(data.map(async (convo) => {
         const otherId = userProfile?.account_type === 'customer' ? convo.provider_id : convo.customer_id
         const { data: otherProfile } = await supabase
@@ -63,27 +61,21 @@ export default function Messages() {
         return { ...convo, otherProfile }
       }))
       setConversations(convosWithProfiles)
-      if (convosWithProfiles.length > 0 && !activeConvo) {
-        selectConversation(convosWithProfiles[0])
+      if (convosWithProfiles.length > 0) {
+        await selectConversation(convosWithProfiles[0])
       }
+      return convosWithProfiles
     }
+    return []
   }
 
-  const startOrFindConversation = async (customerId: string, providerId: string, listingId: string | null) => {
-    // Check if conversation already exists
-    const { data: existing } = await supabase
-      .from('conversations')
-      .select('*')
-      .eq('customer_id', customerId)
-      .eq('provider_id', providerId)
-      .maybeSingle()
-
+  const startOrFindConversation = async (customerId: string, providerId: string, listingId: string | null, existingConvos: any[]) => {
+    const existing = existingConvos.find(c => c.provider_id === providerId)
     if (existing) {
-      selectConversation(existing)
+      await selectConversation(existing)
       return
     }
 
-    // Create new conversation
     const { data: newConvo } = await supabase
       .from('conversations')
       .insert({
@@ -95,7 +87,7 @@ export default function Messages() {
       .single()
 
     if (newConvo) {
-      selectConversation(newConvo)
+      await selectConversation(newConvo)
     }
   }
 
@@ -128,7 +120,6 @@ export default function Messages() {
     if (data) {
       setMessages(prev => [...prev, data])
       setNewMessage('')
-      // Update last message
       await supabase
         .from('conversations')
         .update({ last_message: newMessage.trim(), last_message_at: new Date().toISOString() })
@@ -148,7 +139,6 @@ export default function Messages() {
 
   return (
     <main className="min-h-screen bg-[#0D1B2A] flex flex-col">
-      {/* NAV */}
       <nav className="h-16 bg-[#0D1B2A]/95 backdrop-blur border-b border-white/5 flex items-center px-6 gap-4 z-50 flex-shrink-0">
         <div className="flex flex-col mr-4">
           <span className="font-black text-2xl tracking-tighter text-white">2<span className="text-[#E8A020]">GET</span></span>
@@ -163,7 +153,6 @@ export default function Messages() {
       </nav>
 
       <div className="flex flex-1 overflow-hidden" style={{height:'calc(100vh - 64px)'}}>
-        {/* THREAD LIST */}
         <div className="w-72 min-w-72 border-r border-white/8 flex flex-col">
           <div className="p-4 border-b border-white/8">
             <div className="text-white font-bold text-sm mb-3">Messages</div>
@@ -205,10 +194,8 @@ export default function Messages() {
           </div>
         </div>
 
-        {/* CHAT AREA */}
         {activeConvo ? (
           <div className="flex-1 flex flex-col">
-            {/* Chat header */}
             <div className="px-6 py-4 border-b border-white/8 flex items-center gap-3 bg-[#0D1B2A]/50">
               <div className="w-9 h-9 rounded-full bg-[#E8A020] flex items-center justify-center text-[#0D1B2A] font-black text-sm flex-shrink-0">
                 {activeConvo.otherProfile?.first_name?.[0]}
@@ -228,7 +215,6 @@ export default function Messages() {
               )}
             </div>
 
-            {/* Messages */}
             <div className="flex-1 overflow-y-auto p-6 space-y-4">
               {messages.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-center">
@@ -260,7 +246,6 @@ export default function Messages() {
               <div ref={messagesEndRef}/>
             </div>
 
-            {/* Input */}
             <form onSubmit={sendMessage} className="px-6 py-4 border-t border-white/8 flex gap-3 items-center">
               <input
                 type="text"
@@ -289,5 +274,17 @@ export default function Messages() {
         )}
       </div>
     </main>
+  )
+}
+
+export default function Messages() {
+  return (
+    <Suspense fallback={
+      <main className="min-h-screen bg-[#0D1B2A] flex items-center justify-center">
+        <div className="text-white/30 text-sm">Loading...</div>
+      </main>
+    }>
+      <MessagesContent />
+    </Suspense>
   )
 }
