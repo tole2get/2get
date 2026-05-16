@@ -24,7 +24,6 @@ export default function SignUp() {
     setError('')
 
     try {
-      // Create auth user
       const { data, error: signUpError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
@@ -33,7 +32,6 @@ export default function SignUp() {
       if (signUpError) throw signUpError
 
       if (data.user) {
-        // Create profile
         const { error: profileError } = await supabase
           .from('profiles')
           .insert({
@@ -47,8 +45,7 @@ export default function SignUp() {
           })
 
         if (profileError) throw profileError
-
-        router.push('/auth/verify')
+        router.push('/dashboard')
       }
     } catch (err: any) {
       setError(err.message)
@@ -69,7 +66,6 @@ export default function SignUp() {
           <div className="text-sm text-gray-400">Perth&apos;s home for trusted trades</div>
         </div>
 
-        {/* Account type selector */}
         <div className="mb-6">
           <div className="text-sm font-bold text-gray-500 mb-3">I am a...</div>
           <div className="grid grid-cols-2 gap-3">
@@ -102,7 +98,6 @@ export default function SignUp() {
           </div>
         </div>
 
-        {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
             <div>
