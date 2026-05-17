@@ -57,7 +57,6 @@ export default function ListingPage() {
 
   return (
     <main className="min-h-screen bg-[#0D1B2A]">
-      {/* NAV */}
       <nav className="fixed top-0 left-0 right-0 h-16 bg-[#0D1B2A]/95 backdrop-blur border-b border-white/5 flex items-center px-6 gap-4 z-50">
         <div className="flex flex-col mr-4">
           <span className="font-black text-2xl tracking-tighter text-white">2<span className="text-[#E8A020]">GET</span></span>
@@ -80,9 +79,7 @@ export default function ListingPage() {
         </Link>
 
         <div className="grid grid-cols-3 gap-8">
-          {/* MAIN */}
           <div className="col-span-2">
-            {/* Provider hero */}
             <div className="bg-white/5 border border-white/10 rounded-2xl p-6 mb-6">
               <div className="flex items-start gap-4">
                 <div className="w-14 h-14 rounded-full bg-[#E8A020] flex items-center justify-center text-[#0D1B2A] font-black text-lg flex-shrink-0">
@@ -113,10 +110,7 @@ export default function ListingPage() {
               </div>
             </div>
 
-            {/* Listing title and tags */}
-            <h1 className="text-3xl font-black tracking-tight text-white mb-4">
-              {listing.title}
-            </h1>
+            <h1 className="text-3xl font-black tracking-tight text-white mb-4">{listing.title}</h1>
 
             {listing.tags && listing.tags.length > 0 && (
               <div className="flex gap-2 flex-wrap mb-6">
@@ -128,37 +122,26 @@ export default function ListingPage() {
               </div>
             )}
 
-            {/* Description */}
             <div className="bg-white/3 border border-white/8 rounded-2xl p-6 mb-6">
               <h2 className="text-white font-bold mb-3">About this service</h2>
-              <p className="text-white/60 text-sm leading-relaxed whitespace-pre-wrap">
-                {listing.description}
-              </p>
+              <p className="text-white/60 text-sm leading-relaxed whitespace-pre-wrap">{listing.description}</p>
             </div>
 
-            {/* Stats */}
             <div className="grid grid-cols-3 gap-4 mb-6">
               <div className="bg-white/3 border border-white/8 rounded-xl p-4 text-center">
-                <div className="text-2xl font-black text-white mb-1">
-                  {listing.rating > 0 ? listing.rating : '—'}
-                </div>
+                <div className="text-2xl font-black text-white mb-1">{listing.rating > 0 ? listing.rating : '—'}</div>
                 <div className="text-xs text-white/30">Rating</div>
               </div>
               <div className="bg-white/3 border border-white/8 rounded-xl p-4 text-center">
-                <div className="text-2xl font-black text-white mb-1">
-                  {listing.jobs_completed || 0}
-                </div>
+                <div className="text-2xl font-black text-white mb-1">{listing.jobs_completed || 0}</div>
                 <div className="text-xs text-white/30">Jobs completed</div>
               </div>
               <div className="bg-white/3 border border-white/8 rounded-xl p-4 text-center">
-                <div className="text-2xl font-black text-white mb-1">
-                  {listing.review_count || 0}
-                </div>
+                <div className="text-2xl font-black text-white mb-1">{listing.review_count || 0}</div>
                 <div className="text-xs text-white/30">Reviews</div>
               </div>
             </div>
 
-            {/* No reviews yet */}
             <div className="bg-white/3 border border-white/8 rounded-2xl p-6">
               <h2 className="text-white font-bold mb-3">Reviews</h2>
               <div className="text-white/30 text-sm text-center py-6">
@@ -167,7 +150,6 @@ export default function ListingPage() {
             </div>
           </div>
 
-          {/* SIDEBAR */}
           <div className="col-span-1">
             <div className="bg-white/5 border border-white/10 rounded-2xl p-6 sticky top-20">
               <div className="mb-5">
@@ -176,23 +158,17 @@ export default function ListingPage() {
                   <div className="text-2xl font-black text-[#E8A020]">Quote only</div>
                 ) : (
                   <div>
-                    <span className="text-4xl font-black text-white tracking-tight">
-                      ${listing.price?.toFixed(0)}
-                    </span>
-                    <span className="text-white/30 text-sm ml-1">
-                      {pricingLabel[listing.pricing_type]}
-                    </span>
+                    <span className="text-4xl font-black text-white tracking-tight">${listing.price?.toFixed(0)}</span>
+                    <span className="text-white/30 text-sm ml-1">{pricingLabel[listing.pricing_type]}</span>
                   </div>
                 )}
-                <div className="text-xs text-white/30 mt-1">
-                  Final price confirmed after quote
-                </div>
+                <div className="text-xs text-white/30 mt-1">Final price confirmed after quote</div>
               </div>
 
               {user ? (
                 <div className="space-y-3">
                   <Link
-                    href={`/messages?provider=${provider?.id}&listing=${listing.id}`}
+                    href={`/book/${listing.id}`}
                     className="block w-full py-3 bg-[#E8A020] text-[#0D1B2A] font-black rounded-xl text-sm text-center hover:bg-[#B87A10]"
                   >
                     Book now
@@ -222,15 +198,9 @@ export default function ListingPage() {
               )}
 
               <div className="mt-4 space-y-2">
-                <div className="flex items-center gap-2 text-xs text-[#0EA47A]">
-                  <span>🛡️</span> 2GET Secure Payment
-                </div>
-                <div className="flex items-center gap-2 text-xs text-white/30">
-                  <span>🔄</span> Free cancellation up to 48hrs
-                </div>
-                <div className="flex items-center gap-2 text-xs text-white/30">
-                  <span>🎧</span> 2GET support if anything goes wrong
-                </div>
+                <div className="flex items-center gap-2 text-xs text-[#0EA47A]">🛡️ 2GET Secure Payment</div>
+                <div className="flex items-center gap-2 text-xs text-white/30">🔄 Free cancellation up to 48hrs</div>
+                <div className="flex items-center gap-2 text-xs text-white/30">🎧 2GET support if anything goes wrong</div>
               </div>
 
               <div className="mt-5 pt-5 border-t border-white/8 space-y-3">
