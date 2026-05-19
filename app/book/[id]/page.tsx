@@ -42,6 +42,9 @@ export default function BookPage() {
     setError('')
 
     try {
+      const feeAmount = listing.price * 0.05
+      const providerReceives = listing.price - feeAmount
+
       const res = await fetch('/api/stripe/create-payment-intent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -68,7 +71,7 @@ export default function BookPage() {
           job_date: jobDate,
           notes: jobNotes,
           amount: listing.price,
-          fee_amount: listing.fee_amount,
+          fee_amount: feeAmount,
           status: 'pending',
           payment_intent_id: clientSecret.split('_secret_')[0],
         })
@@ -77,7 +80,7 @@ export default function BookPage() {
 
       if (bookingError) throw bookingError
 
-      // Award XP for booking
+      // Award XP per dollar spent
       const xpPerDollar = Math.floor(listing.price * XP_EVENTS.BOOKING_PER_DOLLAR)
       await awardXP(
         user.id,
@@ -87,7 +90,7 @@ export default function BookPage() {
         booking.id
       )
 
-      // Check if first booking and award bonus
+      // Check if first booking
       const { data: allBookings } = await supabase
         .from('bookings')
         .select('id')
@@ -145,8 +148,8 @@ export default function BookPage() {
     )
   }
 
-  const fee = listing?.fee_amount || listing?.price * 0.05
-  const providerReceives = listing?.price - fee
+  const feeAmount = listing?.price * 0.05
+  const providerReceives = listing?.price - feeAmount
 
   return (
     <main className="min-h-screen bg-[#0D1B2A]">
