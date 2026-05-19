@@ -106,6 +106,39 @@ export default function BookPage() {
         )
       }
 
+      // Send confirmation email to customer
+      await fetch('/api/email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'booking_confirmed',
+          to: user.email,
+          data: {
+            listingTitle: listing.title,
+            providerName: `${listing.profiles?.first_name} ${listing.profiles?.last_name}`,
+            jobDate,
+            amount: listing.price?.toFixed(2),
+          }
+        })
+      })
+
+      // Send notification email to provider
+      await fetch('/api/email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'new_booking_provider',
+          to: listing.profiles?.email,
+          data: {
+            listingTitle: listing.title,
+            customerName: user.email,
+            jobDate,
+            providerReceives: providerReceives.toFixed(2),
+            notes: jobNotes,
+          }
+        })
+      })
+
       setPaid(true)
     } catch (err: any) {
       setError(err.message)
