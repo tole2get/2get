@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
+import { awardXP, XP_EVENTS } from '@/lib/xp'
 
 export default function BookPage() {
   const { id } = useParams()
@@ -41,7 +42,6 @@ export default function BookPage() {
     setError('')
 
     try {
-      // Create payment intent
       const res = await fetch('/api/stripe/create-payment-intent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -59,8 +59,7 @@ export default function BookPage() {
       const { clientSecret, error: stripeError } = await res.json()
       if (stripeError) throw new Error(stripeError)
 
-      // Save booking to database
-      const { error: bookingError } = await supabase
+      const { data: booking, error: bookingError } = await supabase
         .from('bookings')
         .insert({
           listing_id: listing.id,
@@ -73,8 +72,36 @@ export default function BookPage() {
           status: 'pending',
           payment_intent_id: clientSecret.split('_secret_')[0],
         })
+        .select()
+        .single()
 
       if (bookingError) throw bookingError
+
+      // Award XP for booking
+      const xpPerDollar = Math.floor(listing.price * XP_EVENTS.BOOKING_PER_DOLLAR)
+      await awardXP(
+        user.id,
+        'BOOKING',
+        xpPerDollar,
+        `Booked ${listing.title}`,
+        booking.id
+      )
+
+      // Check if first booking and award bonus
+      const { data: allBookings } = await supabase
+        .from('bookings')
+        .select('id')
+        .eq('customer_id', user.id)
+
+      if (allBookings && allBookings.length === 1) {
+        await awardXP(
+          user.id,
+          'FIRST_BOOKING',
+          XP_EVENTS.FIRST_BOOKING,
+          'First booking bonus! 🎉',
+          booking.id
+        )
+      }
 
       setPaid(true)
     } catch (err: any) {
@@ -98,13 +125,19 @@ export default function BookPage() {
         <div className="bg-white rounded-2xl p-10 max-w-md w-full text-center">
           <div className="text-5xl mb-4">🎉</div>
           <h1 className="text-2xl font-black text-[#0D1B2A] mb-3">Booking confirmed!</h1>
-          <p className="text-gray-400 text-sm leading-relaxed mb-6">
-            Your booking with <strong>{listing.profiles?.first_name}</strong> has been confirmed for <strong>{jobDate}</strong>. They will be in touch shortly.
+          <p className="text-gray-400 text-sm leading-relaxed mb-3">
+            Your booking with <strong>{listing.profiles?.first_name}</strong> has been confirmed for <strong>{jobDate}</strong>.
           </p>
-          <div className="bg-[#FDF3DC] border border-[#E8A020]/20 rounded-xl p-4 text-sm text-[#B87A10] mb-6">
+          <div className="bg-[#FDF3DC] border border-[#E8A020]/20 rounded-xl p-4 text-sm text-[#B87A10] font-bold mb-3">
+            🎉 You earned XP for this booking! Check your rewards.
+          </div>
+          <div className="bg-[#E6F7F2] border border-[#0EA47A]/20 rounded-xl p-4 text-sm text-[#0A7A5C] mb-6">
             Your payment of <strong>${listing.price}</strong> is held securely by 2GET and released to the tradie once the job is complete.
           </div>
-          <Link href="/dashboard" className="block w-full py-3 bg-[#E8A020] text-[#0D1B2A] font-black rounded-xl text-sm hover:bg-[#B87A10]">
+          <Link href="/rewards" className="block w-full py-3 bg-[#E8A020] text-[#0D1B2A] font-black rounded-xl text-sm hover:bg-[#B87A10] mb-3">
+            View my rewards
+          </Link>
+          <Link href="/dashboard" className="block w-full py-3 border border-gray-200 text-gray-500 font-bold rounded-xl text-sm hover:bg-gray-50">
             Go to dashboard
           </Link>
         </div>
@@ -129,7 +162,6 @@ export default function BookPage() {
         <h1 className="text-3xl font-black tracking-tight text-white mb-2">Confirm your booking</h1>
         <p className="text-white/40 text-sm mb-8">Review the details and confirm your booking below</p>
 
-        {/* Listing summary */}
         <div className="bg-white/5 border border-white/10 rounded-2xl p-5 mb-6">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-10 h-10 rounded-full bg-[#E8A020] flex items-center justify-center text-[#0D1B2A] font-black text-sm">
@@ -143,7 +175,6 @@ export default function BookPage() {
           <div className="text-white font-semibold">{listing.title}</div>
         </div>
 
-        {/* Booking form */}
         <form onSubmit={handlePayment} className="space-y-5">
           <div>
             <label className="text-xs font-bold text-white/40 uppercase tracking-wide block mb-2">Preferred job date</label>
@@ -168,7 +199,6 @@ export default function BookPage() {
             />
           </div>
 
-          {/* Price breakdown */}
           <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
             <div className="flex justify-between px-5 py-3 border-b border-white/8 text-sm">
               <span className="text-white/40">Service price</span>
@@ -178,6 +208,10 @@ export default function BookPage() {
               <span className="text-white/40">2GET secure payment</span>
               <span className="text-[#0EA47A] font-semibold">Included</span>
             </div>
+            <div className="flex justify-between px-5 py-3 border-b border-white/8 text-sm bg-[#E8A020]/5">
+              <span className="text-[#E8A020]/70">XP you&apos;ll earn</span>
+              <span className="text-[#E8A020] font-bold">+{Math.floor(listing.price)} XP</span>
+            </div>
             <div className="flex justify-between px-5 py-4 text-base">
               <span className="text-white font-bold">Total you pay</span>
               <span className="text-[#E8A020] font-black text-xl">${listing.price?.toFixed(2)}</span>
@@ -185,7 +219,7 @@ export default function BookPage() {
           </div>
 
           <div className="bg-[#0EA47A]/10 border border-[#0EA47A]/20 rounded-xl p-4 text-xs text-white/50 leading-relaxed">
-            🛡️ Your payment is held securely by 2GET and only released to the tradie once you confirm the job is complete. You&apos;re protected throughout.
+            🛡️ Your payment is held securely by 2GET and only released to the tradie once you confirm the job is complete.
           </div>
 
           {error && (

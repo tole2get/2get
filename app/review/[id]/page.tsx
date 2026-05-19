@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
+import { awardXP, XP_EVENTS } from '@/lib/xp'
 
 export default function ReviewPage() {
   const { id } = useParams()
@@ -78,6 +79,15 @@ export default function ReviewPage() {
         .update({ status: 'completed', completed_at: new Date().toISOString() })
         .eq('id', booking.id)
 
+      // Award XP for leaving a review
+      await awardXP(
+        user.id,
+        'LEAVE_REVIEW',
+        XP_EVENTS.LEAVE_REVIEW,
+        `Left a review for ${booking.profiles?.first_name} ${booking.profiles?.last_name}`,
+        booking.id
+      )
+
       setSubmitted(true)
     } catch (err: any) {
       setError(err.message)
@@ -100,10 +110,16 @@ export default function ReviewPage() {
         <div className="bg-white rounded-2xl p-10 max-w-md w-full text-center">
           <div className="text-5xl mb-4">⭐</div>
           <h1 className="text-2xl font-black text-[#0D1B2A] mb-3">Thanks for your review!</h1>
-          <p className="text-gray-400 text-sm leading-relaxed mb-6">
-            Your review helps other customers find great tradies. You&apos;ve earned <strong className="text-[#E8A020]">200 XP</strong> for leaving a review!
+          <p className="text-gray-400 text-sm leading-relaxed mb-3">
+            Your review helps other customers find great tradies.
           </p>
-          <Link href="/dashboard" className="block w-full py-3 bg-[#E8A020] text-[#0D1B2A] font-black rounded-xl text-sm hover:bg-[#B87A10]">
+          <div className="bg-[#FDF3DC] border border-[#E8A020]/20 rounded-xl p-4 text-sm text-[#B87A10] font-bold mb-6">
+            🎉 You earned <span className="text-xl">200 XP</span> for leaving a review!
+          </div>
+          <Link href="/rewards" className="block w-full py-3 bg-[#E8A020] text-[#0D1B2A] font-black rounded-xl text-sm hover:bg-[#B87A10] mb-3">
+            View my rewards
+          </Link>
+          <Link href="/dashboard" className="block w-full py-3 border border-gray-200 text-gray-500 font-bold rounded-xl text-sm hover:bg-gray-50">
             Go to dashboard
           </Link>
         </div>
@@ -125,7 +141,6 @@ export default function ReviewPage() {
         <h1 className="text-3xl font-black tracking-tight text-white mb-2">Leave a review</h1>
         <p className="text-white/40 text-sm mb-8">How did it go? Your review helps others find great tradies.</p>
 
-        {/* Booking summary */}
         <div className="bg-white/5 border border-white/10 rounded-2xl p-5 mb-6">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-[#E8A020] flex items-center justify-center text-[#0D1B2A] font-black text-sm">
@@ -141,7 +156,6 @@ export default function ReviewPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Star rating */}
           <div>
             <label className="text-xs font-bold text-white/40 uppercase tracking-wide block mb-3">Your rating</label>
             <div className="flex gap-2">
@@ -165,7 +179,6 @@ export default function ReviewPage() {
             )}
           </div>
 
-          {/* Comment */}
           <div>
             <label className="text-xs font-bold text-white/40 uppercase tracking-wide block mb-2">Your review</label>
             <textarea

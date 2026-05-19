@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { awardXP, XP_EVENTS } from '@/lib/xp'
 
 export default function SignUp() {
   const router = useRouter()
@@ -45,6 +46,17 @@ export default function SignUp() {
           })
 
         if (profileError) throw profileError
+
+        // Award signup XP for customers
+        if (accountType === 'customer') {
+          await awardXP(
+            data.user.id,
+            'SIGNUP',
+            XP_EVENTS.SIGNUP,
+            'Welcome to 2GET! 🎉'
+          )
+        }
+
         router.push('/dashboard')
       }
     } catch (err: any) {
