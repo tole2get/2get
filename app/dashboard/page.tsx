@@ -84,6 +84,12 @@ export default function Dashboard() {
           <Link href="/browse" className="px-3 py-2 rounded text-sm font-medium text-white/50 hover:text-white hover:bg-white/5">Find a Tradie</Link>
           <Link href="/dashboard" className="px-3 py-2 rounded text-sm font-medium text-[#E8A020] bg-[#E8A020]/10">Dashboard</Link>
           <Link href="/messages" className="px-3 py-2 rounded text-sm font-medium text-white/50 hover:text-white hover:bg-white/5">Messages</Link>
+          {profile?.account_type === 'customer' && (
+            <Link href="/rewards" className="px-3 py-2 rounded text-sm font-medium text-white/50 hover:text-white hover:bg-white/5">Rewards ⭐</Link>
+          )}
+          {profile?.account_type === 'provider' && (
+            <Link href="/financials" className="px-3 py-2 rounded text-sm font-medium text-white/50 hover:text-white hover:bg-white/5">Financials</Link>
+          )}
         </div>
         <div className="flex items-center gap-3">
           <div className="text-sm text-white/50">{profile?.first_name} {profile?.last_name}</div>
@@ -105,26 +111,24 @@ export default function Dashboard() {
 
         {profile?.account_type === 'customer' ? (
           <div className="space-y-6">
-            {/* Quick actions */}
             <div className="grid grid-cols-3 gap-4">
-              <Link href="/browse" className="bg-white/5 border border-white/10 rounded-2xl p-6 hover:border-[#E8A020]/30 transition-all cursor-pointer">
+              <Link href="/browse" className="bg-white/5 border border-white/10 rounded-2xl p-6 hover:border-[#E8A020]/30 transition-all cursor-pointer block">
                 <div className="text-3xl mb-4">🔍</div>
                 <h3 className="text-white font-bold mb-2">Find a tradie</h3>
                 <p className="text-white/40 text-sm">Browse Perth&apos;s best tradespeople</p>
               </Link>
-              <Link href="/messages" className="bg-white/5 border border-white/10 rounded-2xl p-6 hover:border-[#E8A020]/30 transition-all cursor-pointer">
+              <Link href="/messages" className="bg-white/5 border border-white/10 rounded-2xl p-6 hover:border-[#E8A020]/30 transition-all cursor-pointer block">
                 <div className="text-3xl mb-4">💬</div>
                 <h3 className="text-white font-bold mb-2">Messages</h3>
                 <p className="text-white/40 text-sm">Chat with your tradies</p>
               </Link>
-              <div className="bg-white/5 border border-white/10 rounded-2xl p-6 hover:border-[#E8A020]/30 transition-all cursor-pointer">
+              <Link href="/rewards" className="bg-white/5 border border-white/10 rounded-2xl p-6 hover:border-[#E8A020]/30 transition-all cursor-pointer block">
                 <div className="text-3xl mb-4">⭐</div>
                 <h3 className="text-white font-bold mb-2">My rewards</h3>
                 <p className="text-white/40 text-sm">View your XP and giveaway entries</p>
-              </div>
+              </Link>
             </div>
 
-            {/* Bookings */}
             {bookings.length > 0 && (
               <div>
                 <h2 className="text-lg font-black text-white mb-4">My bookings</h2>
@@ -142,18 +146,12 @@ export default function Dashboard() {
                           {booking.status}
                         </span>
                         {booking.status === 'completed' && (
-                          <Link
-                            href={`/review/${booking.id}`}
-                            className="px-4 py-2 bg-[#E8A020] text-[#0D1B2A] font-bold text-xs rounded-lg hover:bg-[#B87A10]"
-                          >
+                          <Link href={`/review/${booking.id}`} className="px-4 py-2 bg-[#E8A020] text-[#0D1B2A] font-bold text-xs rounded-lg hover:bg-[#B87A10]">
                             Leave review
                           </Link>
                         )}
                         {booking.status === 'pending' && (
-                          <Link
-                            href={`/messages`}
-                            className="px-4 py-2 border border-white/20 text-white font-bold text-xs rounded-lg hover:bg-white/5"
-                          >
+                          <Link href="/messages" className="px-4 py-2 border border-white/20 text-white font-bold text-xs rounded-lg hover:bg-white/5">
                             Message tradie
                           </Link>
                         )}
@@ -166,31 +164,29 @@ export default function Dashboard() {
           </div>
         ) : (
           <div className="space-y-6">
-            {/* Quick actions */}
             <div className="grid grid-cols-4 gap-4">
-              <Link href="/dashboard/listings/new" className="bg-white/5 border border-white/10 rounded-2xl p-5 hover:border-[#E8A020]/30 transition-all">
+              <Link href="/dashboard/listings/new" className="bg-white/5 border border-white/10 rounded-2xl p-5 hover:border-[#E8A020]/30 transition-all block">
                 <div className="text-2xl mb-3">➕</div>
                 <h3 className="text-white font-bold text-sm mb-1">New listing</h3>
                 <p className="text-white/40 text-xs">Add a service</p>
               </Link>
-              <Link href="/messages" className="bg-white/5 border border-white/10 rounded-2xl p-5 hover:border-[#E8A020]/30 transition-all">
+              <Link href="/messages" className="bg-white/5 border border-white/10 rounded-2xl p-5 hover:border-[#E8A020]/30 transition-all block">
                 <div className="text-2xl mb-3">💬</div>
                 <h3 className="text-white font-bold text-sm mb-1">Messages</h3>
                 <p className="text-white/40 text-xs">Customer enquiries</p>
               </Link>
-              <div className="bg-white/5 border border-white/10 rounded-2xl p-5 hover:border-[#E8A020]/30 transition-all">
+              <Link href="/financials" className="bg-white/5 border border-white/10 rounded-2xl p-5 hover:border-[#E8A020]/30 transition-all block">
                 <div className="text-2xl mb-3">💰</div>
-                <h3 className="text-white font-bold text-sm mb-1">Earnings</h3>
+                <h3 className="text-white font-bold text-sm mb-1">Financials</h3>
                 <p className="text-white/40 text-xs text-[#E8A020] font-bold">${bookings.filter(b => b.status === 'completed').reduce((sum, b) => sum + (b.amount || 0), 0).toFixed(2)}</p>
-              </div>
-              <div className="bg-white/5 border border-white/10 rounded-2xl p-5 hover:border-[#E8A020]/30 transition-all">
-                <div className="text-2xl mb-3">📋</div>
-                <h3 className="text-white font-bold text-sm mb-1">Total bookings</h3>
-                <p className="text-white/40 text-xs text-[#E8A020] font-bold">{bookings.length}</p>
-              </div>
+              </Link>
+              <Link href="/verify-account" className="bg-white/5 border border-white/10 rounded-2xl p-5 hover:border-[#E8A020]/30 transition-all block">
+                <div className="text-2xl mb-3">✅</div>
+                <h3 className="text-white font-bold text-sm mb-1">Get verified</h3>
+                <p className="text-white/40 text-xs">Build trust with customers</p>
+              </Link>
             </div>
 
-            {/* Listings */}
             {listings.length > 0 && (
               <div>
                 <div className="flex justify-between items-center mb-4">
@@ -223,7 +219,6 @@ export default function Dashboard() {
               </div>
             )}
 
-            {/* Bookings */}
             {bookings.length > 0 && (
               <div>
                 <h2 className="text-lg font-black text-white mb-4">Recent bookings</h2>
