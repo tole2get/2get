@@ -11,7 +11,7 @@ export default function Nav() {
   const [profile, setProfile] = useState<any>(null)
   const [loaded, setLoaded] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
-  const [isMobile, setIsMobile] = useState(false)
+  const [isMobile, setIsMobile] = useState<boolean | null>(null)
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768)
@@ -47,27 +47,51 @@ export default function Nav() {
       key={href}
       href={href}
       onClick={() => setMenuOpen(false)}
-      className={`px-3 py-2 rounded text-sm font-medium transition-all whitespace-nowrap ${
-        pathname === href
-          ? 'text-[#E8A020] bg-[#E8A020]/10'
-          : 'text-white/50 hover:text-white hover:bg-white/5'
-      }`}
+      style={{
+        padding:'6px 12px',
+        borderRadius:'6px',
+        fontSize:'14px',
+        fontWeight:500,
+        whiteSpace:'nowrap' as const,
+        color: pathname === href ? '#E8A020' : 'rgba(255,255,255,0.5)',
+        background: pathname === href ? 'rgba(232,160,32,0.1)' : 'transparent',
+        textDecoration:'none',
+        transition:'all 0.15s'
+      }}
     >
       {label}
     </Link>
   )
 
+  // Don't render until we know screen size
+  if (isMobile === null) {
+    return (
+      <nav style={{position:'fixed',top:0,left:0,right:0,height:'64px',background:'rgba(13,27,42,0.97)',borderBottom:'1px solid rgba(255,255,255,0.05)',zIndex:50,display:'flex',alignItems:'center',padding:'0 16px'}}>
+        <Link href="/" style={{textDecoration:'none',display:'flex',flexDirection:'column',marginRight:'8px'}}>
+          <span style={{fontWeight:900,fontSize:'20px',letterSpacing:'-1px',color:'#fff'}}>2<span style={{color:'#E8A020'}}>GET</span></span>
+          <span style={{fontSize:'9px',color:'rgba(255,255,255,0.3)',letterSpacing:'2px',marginTop:'-2px'}}>PERTH</span>
+        </Link>
+      </nav>
+    )
+  }
+
   return (
     <>
-      <nav className="fixed top-0 left-0 right-0 h-16 bg-[#0D1B2A]/97 backdrop-blur border-b border-white/5 flex items-center px-4 gap-3 z-50">
-        <Link href="/" className="flex flex-col mr-2 flex-shrink-0">
-          <span className="font-black text-xl tracking-tighter text-white">2<span className="text-[#E8A020]">GET</span></span>
-          <span className="text-[9px] text-white/30 tracking-widest -mt-0.5">PERTH</span>
+      <nav style={{
+        position:'fixed',top:0,left:0,right:0,height:'64px',
+        background:'rgba(13,27,42,0.97)',
+        borderBottom:'1px solid rgba(255,255,255,0.05)',
+        zIndex:50,display:'flex',alignItems:'center',padding:'0 16px',gap:'8px'
+      }}>
+        {/* Logo */}
+        <Link href="/" style={{textDecoration:'none',display:'flex',flexDirection:'column',marginRight:'8px',flexShrink:0}}>
+          <span style={{fontWeight:900,fontSize:'20px',letterSpacing:'-1px',color:'#fff'}}>2<span style={{color:'#E8A020'}}>GET</span></span>
+          <span style={{fontSize:'9px',color:'rgba(255,255,255,0.3)',letterSpacing:'2px',marginTop:'-2px'}}>PERTH</span>
         </Link>
 
-        {/* Desktop links */}
-        {!isMobile && (
-          <div className="flex gap-1 flex-1">
+        {/* Desktop nav links */}
+        {isMobile === false && (
+          <div style={{display:'flex',gap:'2px',flex:1}}>
             {nl('/', 'Home')}
             {nl('/browse', 'Find a Tradie')}
             {loaded && profile && nl('/dashboard', 'Dashboard')}
@@ -78,87 +102,80 @@ export default function Nav() {
           </div>
         )}
 
-        {isMobile && <div className="flex-1" />}
+        {isMobile === true && <div style={{flex:1}}/>}
 
         {/* Desktop auth */}
-        {!isMobile && loaded && (
-          <div className="flex items-center gap-3 flex-shrink-0">
+        {isMobile === false && loaded && (
+          <div style={{display:'flex',alignItems:'center',gap:'10px',flexShrink:0}}>
             {profile ? (
               <>
-                <div className="text-sm text-white/50">{profile.first_name}</div>
-                <button onClick={handleSignOut} className="px-3 py-1.5 rounded text-sm font-medium text-white/70 border border-white/15 hover:bg-white/5">
+                <span style={{fontSize:'13px',color:'rgba(255,255,255,0.5)'}}>{profile.first_name}</span>
+                <button onClick={handleSignOut} style={{padding:'6px 12px',borderRadius:'6px',fontSize:'13px',fontWeight:500,color:'rgba(255,255,255,0.7)',border:'1px solid rgba(255,255,255,0.15)',background:'none',cursor:'pointer'}}>
                   Sign out
                 </button>
               </>
             ) : (
               <>
-                <Link href="/auth/login" className="px-3 py-1.5 rounded text-sm font-medium text-white/70 border border-white/15 hover:bg-white/5">Log in</Link>
-                <Link href="/auth/signup" className="px-3 py-1.5 rounded text-sm font-bold bg-[#E8A020] text-[#0D1B2A] hover:bg-[#B87A10]">Sign up free</Link>
+                <Link href="/auth/login" style={{padding:'6px 12px',borderRadius:'6px',fontSize:'13px',fontWeight:500,color:'rgba(255,255,255,0.7)',border:'1px solid rgba(255,255,255,0.15)',textDecoration:'none'}}>Log in</Link>
+                <Link href="/auth/signup" style={{padding:'6px 12px',borderRadius:'6px',fontSize:'13px',fontWeight:700,background:'#E8A020',color:'#0D1B2A',textDecoration:'none'}}>Sign up free</Link>
               </>
             )}
           </div>
         )}
 
-        {/* Mobile right */}
-        {isMobile && (
-          <div className="flex items-center gap-2">
+        {/* Mobile right side */}
+        {isMobile === true && (
+          <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
             {loaded && !profile && (
-              <Link href="/auth/signup" className="px-3 py-1.5 rounded text-xs font-bold bg-[#E8A020] text-[#0D1B2A]">
+              <Link href="/auth/signup" style={{padding:'6px 10px',borderRadius:'6px',fontSize:'12px',fontWeight:700,background:'#E8A020',color:'#0D1B2A',textDecoration:'none'}}>
                 Sign up
               </Link>
             )}
             {loaded && profile && (
-              <span className="text-xs text-white/40">{profile.first_name}</span>
+              <span style={{fontSize:'12px',color:'rgba(255,255,255,0.4)'}}>{profile.first_name}</span>
             )}
+            {/* Hamburger button */}
             <button
               onClick={() => setMenuOpen(!menuOpen)}
-              className="w-9 h-9 flex flex-col items-center justify-center gap-1.5 rounded-lg border border-white/15"
+              style={{
+                width:'38px',height:'38px',borderRadius:'8px',
+                border:'1px solid rgba(255,255,255,0.15)',
+                background:'none',cursor:'pointer',
+                display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:'5px'
+              }}
             >
-              <span style={{
-                display:'block', width:'20px', height:'2px', background:'rgba(255,255,255,0.7)',
-                transform: menuOpen ? 'rotate(45deg) translateY(6px)' : 'none',
-                transition:'all 0.2s'
-              }}/>
-              <span style={{
-                display:'block', width:'20px', height:'2px', background:'rgba(255,255,255,0.7)',
-                opacity: menuOpen ? 0 : 1,
-                transition:'all 0.2s'
-              }}/>
-              <span style={{
-                display:'block', width:'20px', height:'2px', background:'rgba(255,255,255,0.7)',
-                transform: menuOpen ? 'rotate(-45deg) translateY(-6px)' : 'none',
-                transition:'all 0.2s'
-              }}/>
+              <span style={{display:'block',width:'18px',height:'2px',background:'rgba(255,255,255,0.7)',transition:'all 0.2s',transform:menuOpen?'rotate(45deg) translateY(7px)':'none'}}/>
+              <span style={{display:'block',width:'18px',height:'2px',background:'rgba(255,255,255,0.7)',transition:'all 0.2s',opacity:menuOpen?0:1}}/>
+              <span style={{display:'block',width:'18px',height:'2px',background:'rgba(255,255,255,0.7)',transition:'all 0.2s',transform:menuOpen?'rotate(-45deg) translateY(-7px)':'none'}}/>
             </button>
           </div>
         )}
       </nav>
 
-      {/* Mobile dropdown menu */}
-      {isMobile && menuOpen && (
+      {/* Mobile dropdown */}
+      {isMobile === true && menuOpen && (
         <div style={{
-          position:'fixed', top:'64px', left:0, right:0,
-          background:'#0D1B2A', borderBottom:'1px solid rgba(255,255,255,0.1)',
-          zIndex:40
+          position:'fixed',top:'64px',left:0,right:0,
+          background:'#0D1B2A',
+          borderBottom:'1px solid rgba(255,255,255,0.1)',
+          zIndex:49
         }}>
           {[
             {href:'/', label:'Home'},
             {href:'/browse', label:'Find a Tradie'},
-            ...(loaded && profile ? [{href:'/dashboard', label:'Dashboard'}, {href:'/messages', label:'Messages'}] : []),
-            ...(loaded && profile?.account_type === 'customer' ? [{href:'/rewards', label:'Rewards ⭐'}] : []),
-            ...(loaded && profile?.account_type === 'provider' ? [{href:'/financials', label:'Financials'}, {href:'/verify-account', label:'Get verified'}] : []),
+            ...(loaded && profile ? [{href:'/dashboard',label:'Dashboard'},{href:'/messages',label:'Messages'}] : []),
+            ...(loaded && profile?.account_type === 'customer' ? [{href:'/rewards',label:'Rewards ⭐'}] : []),
+            ...(loaded && profile?.account_type === 'provider' ? [{href:'/financials',label:'Financials'},{href:'/verify-account',label:'Get verified'}] : []),
           ].map(item => (
             <Link
               key={item.href}
               href={item.href}
               onClick={() => setMenuOpen(false)}
               style={{
-                display:'block', padding:'14px 18px',
-                fontSize:'14px', fontWeight:'500',
-                color: pathname === item.href ? '#E8A020' : 'rgba(255,255,255,0.6)',
+                display:'block',padding:'14px 18px',fontSize:'15px',fontWeight:500,
+                color: pathname === item.href ? '#E8A020' : 'rgba(255,255,255,0.7)',
                 background: pathname === item.href ? 'rgba(232,160,32,0.08)' : 'transparent',
-                borderBottom:'1px solid rgba(255,255,255,0.05)',
-                textDecoration:'none'
+                borderBottom:'1px solid rgba(255,255,255,0.05)',textDecoration:'none'
               }}
             >
               {item.label}
@@ -168,9 +185,9 @@ export default function Nav() {
             <button
               onClick={handleSignOut}
               style={{
-                display:'block', width:'100%', textAlign:'left',
-                padding:'14px 18px', fontSize:'14px', fontWeight:'500',
-                color:'#E05A3A', background:'none', border:'none', cursor:'pointer',
+                display:'block',width:'100%',textAlign:'left',
+                padding:'14px 18px',fontSize:'15px',fontWeight:500,
+                color:'#E05A3A',background:'none',border:'none',cursor:'pointer',
                 borderTop:'1px solid rgba(255,255,255,0.05)'
               }}
             >
@@ -178,9 +195,9 @@ export default function Nav() {
             </button>
           )}
           {loaded && !profile && (
-            <div style={{padding:'14px 18px', display:'flex', gap:'10px'}}>
-              <Link href="/auth/login" onClick={() => setMenuOpen(false)} style={{flex:1, padding:'9px', textAlign:'center', border:'1px solid rgba(255,255,255,0.15)', borderRadius:'8px', fontSize:'13px', color:'rgba(255,255,255,0.7)', textDecoration:'none'}}>Log in</Link>
-              <Link href="/auth/signup" onClick={() => setMenuOpen(false)} style={{flex:1, padding:'9px', textAlign:'center', background:'#E8A020', borderRadius:'8px', fontSize:'13px', fontWeight:'700', color:'#0D1B2A', textDecoration:'none'}}>Sign up free</Link>
+            <div style={{padding:'14px 18px',display:'flex',gap:'10px'}}>
+              <Link href="/auth/login" onClick={() => setMenuOpen(false)} style={{flex:1,padding:'10px',textAlign:'center',border:'1px solid rgba(255,255,255,0.15)',borderRadius:'8px',fontSize:'14px',color:'rgba(255,255,255,0.7)',textDecoration:'none'}}>Log in</Link>
+              <Link href="/auth/signup" onClick={() => setMenuOpen(false)} style={{flex:1,padding:'10px',textAlign:'center',background:'#E8A020',borderRadius:'8px',fontSize:'14px',fontWeight:700,color:'#0D1B2A',textDecoration:'none'}}>Sign up free</Link>
             </div>
           )}
         </div>
